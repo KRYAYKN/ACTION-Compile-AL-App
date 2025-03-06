@@ -1,0 +1,57 @@
+name: Compile AL Application
+description: Compile the AL application in a BC container.
+
+inputs:
+  CONTAINERNAME:
+    description: "The name of the Business Central container."
+    required: true
+  BC_USERNAME:
+    description: "Business Central username."
+    required: true
+  BC_PASSWORD:
+    description: "Business Central password."
+    required: true
+  Build_StagingDirectory:
+    description: "Path to the build staging directory."
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Compile Application
+      shell: pwsh
+      run: |
+        # Logging current working directory
+        $RepositoryDirectory = Get-Location
+        Write-Host "Current Working Directory: $RepositoryDirectory"
+
+        # Preparing credentials
+        $password = ConvertTo-SecureString "${{ inputs.BC_PASSWORD }}" -AsPlainText -Force
+        $credential = New-Object System.Management.Automation.PSCredential ("${{ inputs.BC_USERNAME }}", $password)
+
+        # Compiling AL app in BC container
+        Write-Host "##[command]Compiling app in container: ${{ inputs.CONTAINERNAME }}"
+        Compile-AppInBcContainer -appProjectFolder $RepositoryDirectory -containerName "${{ inputs.CONTAINERNAME }}" -credential $credential -GenerateReportLayout Yes -ReportSuppressedDiagnostics
+
+
+        # Locating the .app file in the output directory
+        $stagingDirectory = "${{ inputs.Build_StagingDirectory }}"
+        Write-Host "##[section]Moving .app file to staging directory: $stagingDirectory"
+        
+        if (-not (Test-Path $stagingDirectory)) {
+          Write-Host "Staging directory does not exist. Creating: $stagingDirectory"
+          New-Item -ItemType Directory -Path $stagingDirectory | Out-Null
+        }
+
+        $appFile = Get-ChildItem -Path (Join-Path $RepositoryDirectory -ChildPath "output") -Filter "*.app" | Select-Object -First 1
+        if (-not $appFile) {
+          Write-Host "Error: No .app file found in output directory."
+          exit 1
+        }
+
+        Write-Host "Found .app file: $($appFile.FullName)"
+        Copy-Item -Path $appFile.FullName -Destination $stagingDirectory -Force
+
+        # Logging content of staging directory
+        Write-Host "##[section]Staging directory content:"
+        Get-ChildItem -Path $stagingDirectory | ForEach-Object { Write-Host $_.FullName }
