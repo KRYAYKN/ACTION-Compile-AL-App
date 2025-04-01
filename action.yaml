@@ -39,8 +39,10 @@ runs:
         if (-not (Get-Module -ListAvailable -Name BcContainerHelper)) {
             Install-Module BcContainerHelper -Force -Scope CurrentUser
         }
-        Import-Module BcContainerHelper
+        Import-Module BcContainerHelper -Global
+        Import-Module BcContainerHelper -Verbose
         Install-TestToolkitInBcContainer -containerName "${{ inputs.CONTAINERNAME }}"
+
 
  
     - name: Compile Test App
