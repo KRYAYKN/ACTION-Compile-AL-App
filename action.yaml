@@ -1,57 +1,43 @@
 name: Compile AL Application
-description: Compile the AL application in a BC container.
+description: Compile the AL application and test app in a BC container.
 
 inputs:
   CONTAINERNAME:
-    description: "The name of the Business Central container."
     required: true
   BC_USERNAME:
-    description: "Business Central username."
     required: true
   BC_PASSWORD:
-    description: "Business Central password."
     required: true
   Build_StagingDirectory:
-    description: "Path to the build staging directory."
     required: true
 
 runs:
   using: "composite"
   steps:
-    - name: Compile Application
+    - name: Compile Main App
       shell: pwsh
       run: |
-        # Logging current working directory
-        $RepositoryDirectory = Get-Location
-        Write-Host "Current Working Directory: $RepositoryDirectory"
-
-        # Preparing credentials
+        $RepoDir = Get-Location
+        $srcPath = Join-Path $RepoDir "src"
         $password = ConvertTo-SecureString "${{ inputs.BC_PASSWORD }}" -AsPlainText -Force
         $credential = New-Object System.Management.Automation.PSCredential ("${{ inputs.BC_USERNAME }}", $password)
 
-        # Compiling AL app in BC container
-        Write-Host "##[command]Compiling app in container: ${{ inputs.CONTAINERNAME }}"
-        Compile-AppInBcContainer -appProjectFolder $RepositoryDirectory -containerName "${{ inputs.CONTAINERNAME }}" -credential $credential -GenerateReportLayout Yes -ReportSuppressedDiagnostics
+        Write-Host "Compiling Main App..."
+        Compile-AppInBcContainer -appProjectFolder $srcPath -containerName "${{ inputs.CONTAINERNAME }}" -credential $credential -GenerateReportLayout -ReportSuppressedDiagnostics
 
+        $mainApp = Get-ChildItem -Path "$srcPath/output" -Filter "*.app" | Select-Object -First 1
+        Copy-Item -Path $mainApp.FullName -Destination (Join-Path "${{ inputs.Build_StagingDirectory }}" "main.app") -Force
 
-        # Locating the .app file in the output directory
-        $stagingDirectory = "${{ inputs.Build_StagingDirectory }}"
-        Write-Host "##[section]Moving .app file to staging directory: $stagingDirectory"
-        
-        if (-not (Test-Path $stagingDirectory)) {
-          Write-Host "Staging directory does not exist. Creating: $stagingDirectory"
-          New-Item -ItemType Directory -Path $stagingDirectory | Out-Null
-        }
+    - name: Compile Test App
+      shell: pwsh
+      run: |
+        $RepoDir = Get-Location
+        $testPath = Join-Path $RepoDir "test"
+        $password = ConvertTo-SecureString "${{ inputs.BC_PASSWORD }}" -AsPlainText -Force
+        $credential = New-Object System.Management.Automation.PSCredential ("${{ inputs.BC_USERNAME }}", $password)
 
-        $appFile = Get-ChildItem -Path (Join-Path $RepositoryDirectory -ChildPath "output") -Filter "*.app" | Select-Object -First 1
-        if (-not $appFile) {
-          Write-Host "Error: No .app file found in output directory."
-          exit 1
-        }
+        Write-Host "Compiling Test App..."
+        Compile-AppInBcContainer -appProjectFolder $testPath -containerName "${{ inputs.CONTAINERNAME }}" -credential $credential -GenerateReportLayout -ReportSuppressedDiagnostics
 
-        Write-Host "Found .app file: $($appFile.FullName)"
-        Copy-Item -Path $appFile.FullName -Destination $stagingDirectory -Force
-
-        # Logging content of staging directory
-        Write-Host "##[section]Staging directory content:"
-        Get-ChildItem -Path $stagingDirectory | ForEach-Object { Write-Host $_.FullName }
+        $testApp = Get-ChildItem -Path "$testPath/output" -Filter "*.app" | Select-Object -First 1
+        Copy-Item -Path $testApp.FullName -Destination (Join-Path "${{ inputs.Build_StagingDirectory }}" "test.app") -Force
