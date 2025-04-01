@@ -36,7 +36,12 @@ runs:
     - name: Install Test Toolkit in Container
       shell: pwsh
       run: |
-        Install-TestToolkitInBcContainer -containerName "${{ inputs.CONTAINERNAME }}"    
+        if (-not (Get-Module -ListAvailable -Name BcContainerHelper)) {
+            Install-Module BcContainerHelper -Force -Scope CurrentUser
+        }
+        Import-Module BcContainerHelper
+        Install-TestToolkitInBcContainer -containerName "${{ inputs.CONTAINERNAME }}"
+
  
     - name: Compile Test App
       shell: pwsh
