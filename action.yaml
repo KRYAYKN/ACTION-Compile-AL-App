@@ -32,12 +32,12 @@ runs:
         $mainApp = Get-ChildItem -Path "$appPath/output" -Filter "*.app" | Select-Object -First 1
         New-Item -Path "${{ inputs.Build_StagingDirectory }}" -ItemType Directory -Force | Out-Null
         Copy-Item -Path $mainApp.FullName -Destination (Join-Path "${{ inputs.Build_StagingDirectory }}" "main.app") -Force
-
+ 
     - name: Compile Test App
       shell: pwsh
       run: |
         $RepoDir = Get-Location
-        $testPath = Join-Path $RepoDir "test"
+        $testPath = Join-Path $RepoDir "src/Test"
         $password = ConvertTo-SecureString "${{ inputs.BC_PASSWORD }}" -AsPlainText -Force
         $credential = New-Object System.Management.Automation.PSCredential ("${{ inputs.BC_USERNAME }}", $password)
 
@@ -46,3 +46,4 @@ runs:
 
         $testApp = Get-ChildItem -Path "$testPath/output" -Filter "*.app" | Select-Object -First 1
         Copy-Item -Path $testApp.FullName -Destination (Join-Path "${{ inputs.Build_StagingDirectory }}" "test.app") -Force
+
