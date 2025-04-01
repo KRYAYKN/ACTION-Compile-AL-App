@@ -22,15 +22,14 @@ runs:
       shell: pwsh
       run: |
         $RepoDir = Get-Location
-        $srcPath = Join-Path $RepoDir "src"
+        $appPath = $RepoDir  # app.json is at the root
         $password = ConvertTo-SecureString "${{ inputs.BC_PASSWORD }}" -AsPlainText -Force
         $credential = New-Object System.Management.Automation.PSCredential ("${{ inputs.BC_USERNAME }}", $password)
 
         Write-Host "Compiling Main App..."
-        Compile-AppInBcContainer -appProjectFolder $srcPath -containerName "${{ inputs.CONTAINERNAME }}" -credential $credential -GenerateReportLayout "Yes" -ReportSuppressedDiagnostics
+        Compile-AppInBcContainer -appProjectFolder $appPath -containerName "${{ inputs.CONTAINERNAME }}" -credential $credential -GenerateReportLayout "Yes" -ReportSuppressedDiagnostics
 
-
-        $mainApp = Get-ChildItem -Path "$srcPath/output" -Filter "*.app" | Select-Object -First 1
+        $mainApp = Get-ChildItem -Path "$appPath/output" -Filter "*.app" | Select-Object -First 1
         Copy-Item -Path $mainApp.FullName -Destination (Join-Path "${{ inputs.Build_StagingDirectory }}" "main.app") -Force
 
     - name: Compile Test App
@@ -42,7 +41,7 @@ runs:
         $credential = New-Object System.Management.Automation.PSCredential ("${{ inputs.BC_USERNAME }}", $password)
 
         Write-Host "Compiling Test App..."
-        Compile-AppInBcContainer -appProjectFolder $srcPath -containerName "${{ inputs.CONTAINERNAME }}" -credential $credential -GenerateReportLayout "Yes" -ReportSuppressedDiagnostics
+        Compile-AppInBcContainer -appProjectFolder $testPath -containerName "${{ inputs.CONTAINERNAME }}" -credential $credential -GenerateReportLayout "Yes" -ReportSuppressedDiagnostics
 
         $testApp = Get-ChildItem -Path "$testPath/output" -Filter "*.app" | Select-Object -First 1
         Copy-Item -Path $testApp.FullName -Destination (Join-Path "${{ inputs.Build_StagingDirectory }}" "test.app") -Force
