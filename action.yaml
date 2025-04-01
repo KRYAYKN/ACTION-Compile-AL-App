@@ -3,12 +3,16 @@ description: Compile the AL application and test app in a BC container.
 
 inputs:
   CONTAINERNAME:
+    description: "The name of the Business Central container."
     required: true
   BC_USERNAME:
+    description: "Business Central username."
     required: true
   BC_PASSWORD:
+    description: "Business Central password."
     required: true
   Build_StagingDirectory:
+    description: "Path to the build staging directory."
     required: true
 
 runs:
@@ -23,7 +27,7 @@ runs:
         $credential = New-Object System.Management.Automation.PSCredential ("${{ inputs.BC_USERNAME }}", $password)
 
         Write-Host "Compiling Main App..."
-        Compile-AppInBcContainer -appProjectFolder $srcPath -containerName "${{ inputs.CONTAINERNAME }}" -credential $credential -GenerateReportLayout -ReportSuppressedDiagnostics
+        Compile-AppInBcContainer -appProjectFolder $srcPath -containerName "${{ inputs.CONTAINERNAME }}" -credential $credential -GenerateReportLayout "Force" -ReportSuppressedDiagnostics
 
         $mainApp = Get-ChildItem -Path "$srcPath/output" -Filter "*.app" | Select-Object -First 1
         Copy-Item -Path $mainApp.FullName -Destination (Join-Path "${{ inputs.Build_StagingDirectory }}" "main.app") -Force
@@ -37,7 +41,7 @@ runs:
         $credential = New-Object System.Management.Automation.PSCredential ("${{ inputs.BC_USERNAME }}", $password)
 
         Write-Host "Compiling Test App..."
-        Compile-AppInBcContainer -appProjectFolder $testPath -containerName "${{ inputs.CONTAINERNAME }}" -credential $credential -GenerateReportLayout -ReportSuppressedDiagnostics
+        Compile-AppInBcContainer -appProjectFolder $testPath -containerName "${{ inputs.CONTAINERNAME }}" -credential $credential -GenerateReportLayout "Force" -ReportSuppressedDiagnostics
 
         $testApp = Get-ChildItem -Path "$testPath/output" -Filter "*.app" | Select-Object -First 1
         Copy-Item -Path $testApp.FullName -Destination (Join-Path "${{ inputs.Build_StagingDirectory }}" "test.app") -Force
