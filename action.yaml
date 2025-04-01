@@ -41,7 +41,8 @@ runs:
         }
         Import-Module BcContainerHelper -Global
         Import-Module BcContainerHelper -Verbose
-        Install-TestToolkitInBcContainer -containerName "${{ inputs.CONTAINERNAME }}"
+        Import-TestToolkitToBcContainer -containerName "${{ inputs.CONTAINERNAME }}"
+
 
 
  
