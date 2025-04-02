@@ -39,8 +39,8 @@ runs:
       run: |
         $RepoDir = Get-Location
         $mainAppPath = Join-Path $RepoDir "Artifacts/main.app"
-        $password = ConvertTo-SecureString "${{ secrets.BC_PASSWORD }}" -AsPlainText -Force
-        $credential = New-Object System.Management.Automation.PSCredential ("${{ secrets.BC_USERNAME }}", $password)
+        $password = ConvertTo-SecureString "${{ inputs.BC_PASSWORD }}" -AsPlainText -Force
+        $credential = New-Object System.Management.Automation.PSCredential ("${{ inputs.BC_USERNAME }}", $password)
 
         Import-Module BcContainerHelper
         Publish-BcContainerApp -appFile $mainAppPath -containerName "BUSINESSCENTRAL-FORMULA-ERP-CONTAINER" -credential $credential -sync -install
@@ -78,3 +78,4 @@ runs:
         $testApp = Get-ChildItem -Path "$testPath/output" -Filter "*.app" | Select-Object -First 1
         Copy-Item -Path $testApp.FullName -Destination (Join-Path "${{ inputs.Build_StagingDirectory }}" "test.app") -Force
 
+#sssss
