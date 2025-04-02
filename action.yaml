@@ -43,7 +43,7 @@ runs:
         $credential = New-Object System.Management.Automation.PSCredential ("${{ inputs.BC_USERNAME }}", $password)
 
         Import-Module BcContainerHelper
-        Publish-BcContainerApp -appFile $mainAppPath -containerName "BUSINESSCENTRAL-FORMULA-ERP-CONTAINER" -credential $credential -sync -install
+        Publish-BcContainerApp -appFile $mainAppPath -containerName "BUSINESSCENTRAL-FORMULA-ERP-CONTAINER" -credential $credential -sync -install -skipVerification
     
 
     - name: Install Test Toolkit in Container
