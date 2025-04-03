@@ -74,12 +74,13 @@ runs:
         Remove-Item -Path "$testPath\.alpackages" -Recurse -Force -ErrorAction SilentlyContinue
 
         Write-Host "Compiling Test App..."
-        Compile-AppInBcContainer -appProjectFolder $testPath -containerName "${{ inputs.CONTAINERNAME }}" -credential $credential -GenerateReportLayout "Yes" -ReportSuppressedDiagnostics
+        Compile-AppInBcContainer -appProjectFolder $testPath -containerName "${{ inputs.CONTAINERNAME }}" -credential $credential -GenerateReportLayout "Yes" -ReportSuppressedDiagnostics -CopySymbolsFromContainer -gitHubActions -generateErrorLog
 
         $testApp = Get-ChildItem -Path "$testPath/output" -Filter "*.app" | Select-Object -First 1
         Copy-Item -Path $testApp.FullName -Destination (Join-Path "${{ inputs.Build_StagingDirectory }}" "test.app") -Force
 
     - name: Publish Test App to Dev Container
+     # if: ${{ github.ref == 'refs/heads/dev' }}
       shell: pwsh
       run: |
         $RepoDir = Get-Location
