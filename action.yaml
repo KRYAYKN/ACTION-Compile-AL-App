@@ -45,7 +45,18 @@ runs:
 
         Import-Module BcContainerHelper
         Publish-BcContainerApp -appFile $mainAppPath -containerName "BUSINESSCENTRAL-FORMULA-ERP-CONTAINER" -credential $credential -sync -install -skipVerification
- 
+    
+    - name: Install Test Toolkit in Container
+     # if: ${{ github.ref == 'refs/heads/dev' }}
+      shell: pwsh
+      run: |
+        if (-not (Get-Module -ListAvailable -Name BcContainerHelper)) {
+            Install-Module BcContainerHelper -Force -Scope CurrentUser
+        }
+        Import-Module BcContainerHelper -Global
+        Import-Module BcContainerHelper -Verbose
+        Import-TestToolkitToBcContainer -containerName "${{ inputs.CONTAINERNAME }}"
+    
     - name: Compile Test App
      # if: ${{ github.ref == 'refs/heads/dev' }}
       shell: pwsh
