@@ -22,19 +22,19 @@ runs:
       shell: pwsh
       run: |
         $RepoDir = Get-Location
-        $appPath = Join-Path $RepoDir "src/PageExt"
+        $appPath = Join-Path $RepoDir "/"
 
         $password = ConvertTo-SecureString "${{ inputs.BC_PASSWORD }}" -AsPlainText -Force
         $credential = New-Object System.Management.Automation.PSCredential ("${{ inputs.BC_USERNAME }}", $password)
 
         Write-Host "Compiling Main App..."
-        Compile-AppInBcContainer -appProjectFolder $appPath -containerName "${{ inputs.CONTAINERNAME }}" -credential $credential -GenerateReportLayout "Yes" -ReportSuppressedDiagnostics
+        Compile-AppInBcContainer -appProjectFolder $appPath -containerName "${{ inputs.CONTAINERNAME }}" -credential $credential -GenerateReportLayout "Yes" -ReportSuppressedDiagnostics -EnableCodeCop -EnablePerTenantExtensionCop -EnableUICop -enableExternalRulesets
 
         $mainApp = Get-ChildItem -Path "$appPath/output" -Filter "*.app" | Select-Object -First 1
         New-Item -Path "${{ inputs.Build_StagingDirectory }}" -ItemType Directory -Force | Out-Null
         Copy-Item -Path $mainApp.FullName -Destination (Join-Path "${{ inputs.Build_StagingDirectory }}" "main.app") -Force
     
-    - name: Publish Main App to Dev Container
+    - name: Publish  App to Dev Container
      # if: ${{ github.ref == 'refs/heads/dev' }}
       shell: pwsh
       run: |
@@ -44,38 +44,8 @@ runs:
         $credential = New-Object System.Management.Automation.PSCredential ("${{ inputs.BC_USERNAME }}", $password)
 
         Import-Module BcContainerHelper
-        Publish-BcContainerApp -appFile $mainAppPath -containerName "BUSINESSCENTRAL-FORMULA-ERP-CONTAINER" -credential $credential -sync -install -skipVerification
+        Publish-BcContainerApp -appFile $mainAppPath -containerName "${{ inputs.CONTAINERNAME }}" -credential $credential -sync -install -skipVerification
     
-    - name: Install Test Toolkit in Container
-     # if: ${{ github.ref == 'refs/heads/dev' }}
-      shell: pwsh
-      run: |
-        if (-not (Get-Module -ListAvailable -Name BcContainerHelper)) {
-            Install-Module BcContainerHelper -Force -Scope CurrentUser
-        }
-        Import-Module BcContainerHelper -Global
-        Import-Module BcContainerHelper -Verbose
-        Import-TestToolkitToBcContainer -containerName "${{ inputs.CONTAINERNAME }}"
-    
-    - name: Compile Test App
-     # if: ${{ github.ref == 'refs/heads/dev' }}
-      shell: pwsh
-      run: |
-        $RepoDir = Get-Location
-        $testPath = Join-Path $RepoDir "src/Test"
-        $password = ConvertTo-SecureString "${{ inputs.BC_PASSWORD }}" -AsPlainText -Force
-        $credential = New-Object System.Management.Automation.PSCredential ("${{ inputs.BC_USERNAME }}", $password)
-
-        # AL packages cleaning
-        Remove-Item -Path "$testPath\.alpackages" -Recurse -Force -ErrorAction SilentlyContinue
-
-        Write-Host "Compiling Test App..."
-        Compile-AppInBcContainer -appProjectFolder $testPath -containerName "${{ inputs.CONTAINERNAME }}" -credential $credential -GenerateReportLayout "Yes" -ReportSuppressedDiagnostics -CopySymbolsFromContainer -gitHubActions -generateErrorLog
-
-        $testApp = Get-ChildItem -Path "$testPath/output" -Filter "*.app" | Select-Object -First 1
-        Copy-Item -Path $testApp.FullName -Destination (Join-Path "${{ inputs.Build_StagingDirectory }}" "test.app") -Force
-
-
-        
+ 
 
 #sssss
