@@ -65,8 +65,8 @@ runs:
         $credential = New-Object System.Management.Automation.PSCredential ("${{ inputs.BC_USERNAME }}", $password)
         $containerName = "${{ inputs.CONTAINERNAME }}"
         Import-Module BcContainerHelper
-
-        $xunitResultsFile = Join-Path $env:ProgramData "BcContainerHelper\Extensions\$containerName\my\results.xml"
+        $resultpath = (Get-BcContainerSharedFolders -containerName $containerName ).GetEnumerator() | Where-Object { $_.Value -like "*my*" } | select -Property Name
+        $xunitResultsFile = Join-Path($resultpath.Name) -ChildPath 'result.xml'
 
 
         $tests = Get-TestsFromBCContainer `
