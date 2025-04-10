@@ -75,7 +75,6 @@ runs:
             -testSuite 'SG' `
             -testCodeunitRange '66601..66700' `
             -ignoreGroups
-
         $first = $true
         $tests | ForEach-Object {
             Run-TestsInBCContainer `
@@ -86,7 +85,8 @@ runs:
                 -testSuite 'SG' `
                 -testCodeunit $_.Id `
                 -GitHubActions error `
-                -detailed 
+                -detailed `
+                -tenant deafult
             $first = $false
         }
 
