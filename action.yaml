@@ -82,11 +82,11 @@ runs:
                 -credential $credential `
                 -XUnitResultFileName $xunitResultsFile `
                 -AppendToXUnitResultFile:(!$first) `
-                -testSuite 'SG' `
+                -testSuite 'DEFAULT' `
                 -testCodeunit $_.Id `
                 -GitHubActions error `
                 -detailed `
-                -tenant deafult
+                -tenant default
             $first = $false
         }
 
