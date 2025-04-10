@@ -87,7 +87,15 @@ runs:
             $first = $false
         }
 
-        # Test sonucu varsa kopyala ve kontrol et
+        # Dinamik olarak results.xml oluşmasını bekle
+        $maxAttempts = 6
+        $attempt = 0
+        while (-not (Test-Path $xunitResultsFile) -and $attempt -lt $maxAttempts) {
+            Write-Host "⌛ Waiting for test results file... (Attempt $($attempt + 1)/$maxAttempts)"
+            Start-Sleep -Seconds 30
+            $attempt++
+        }
+
         if (Test-Path $xunitResultsFile) {
             Copy-Item -Path $xunitResultsFile -Destination (Join-Path $RepoDir "TestResults.xml") -Force
 
@@ -99,9 +107,10 @@ runs:
             }
         }
         else {
-            Write-Error "XUnit test result file not found: $xunitResultsFile"
+            Write-Error "❌ XUnit test result file not found after waiting: $xunitResultsFile"
             exit 1
         }
+
 
 
     - name: Publish Test Report
