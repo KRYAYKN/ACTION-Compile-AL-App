@@ -72,7 +72,7 @@ runs:
         $tests = Get-TestsFromBCContainer `
             -containerName $containerName `
             -credential $credential `
-            -testSuite 'SG' `
+            -testSuite 'DEFAULT' `
             -testCodeunitRange '66601..66700' `
             -ignoreGroups
         $first = $true
