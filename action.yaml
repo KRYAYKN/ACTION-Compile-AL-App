@@ -117,23 +117,3 @@ runs:
 
 
 
-    - name: Convert AL Test Results to Markdown
-      shell: pwsh
-      run: |
-        Install-Module -Name ALTestResultsToMarkdown -Force -Scope CurrentUser
-        Import-Module ALTestResultsToMarkdown
-        Convert-ALTestResultsToMarkdown `
-          -TestResultsPath "TestResults.xml" `
-          -OutputMarkdownPath "TestResults.md"
-
-    - name: Publish AL Test Results Summary
-      shell: bash
-      run: |
-        echo "### 🧪 AL Test Results" >> $GITHUB_STEP_SUMMARY
-        cat TestResults.md >> $GITHUB_STEP_SUMMARY
-
-    - name: Upload Test Result XML (artifact)
-      uses: actions/upload-artifact@v4
-      with:
-        name: AL-TestResults
-        path: TestResults.xml
