@@ -90,7 +90,7 @@ runs:
             $first = $false
         }
 
-        # Dinamik olarak results.xml oluşmasını bekle
+        # Wait for creating results of tests 
         $maxAttempts = 6
         $attempt = 0
         while (-not (Test-Path $xunitResultsFile) -and $attempt -lt $maxAttempts) {
@@ -103,6 +103,7 @@ runs:
             Copy-Item -Path $xunitResultsFile -Destination (Join-Path $RepoDir "TestResults.xml") -Force
 
             [xml]$result = Get-Content (Join-Path $RepoDir "TestResults.xml")
+            $result.OuterXml | Out-File (Join-Path $RepoDir "parsed.xml") -Force
             $failed = $result.testsuite.failures
             if ($failed -gt 0) {
                 Write-Host "$failed test(s) failed."
@@ -116,11 +117,23 @@ runs:
 
 
 
-    - name: Publish Test Report
-      if: always()
-      uses: dorny/test-reporter@v1
+    - name: Convert AL Test Results to Markdown
+      shell: pwsh
+      run: |
+        Install-Module -Name ALTestResultsToMarkdown -Force -Scope CurrentUser
+        Import-Module ALTestResultsToMarkdown
+        Convert-ALTestResultsToMarkdown `
+          -TestResultsPath "TestResults.xml" `
+          -OutputMarkdownPath "TestResults.md"
+
+    - name: Publish AL Test Results Summary
+      shell: bash
+      run: |
+        echo "### 🧪 AL Test Results" >> $GITHUB_STEP_SUMMARY
+        cat TestResults.md >> $GITHUB_STEP_SUMMARY
+
+    - name: Upload Test Result XML (artifact)
+      uses: actions/upload-artifact@v4
       with:
-        name: AL Test Results
+        name: AL-TestResults
         path: TestResults.xml
-        reporter: java-junit
-        fail-on-error: true
