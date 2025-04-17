@@ -35,6 +35,8 @@ runs:
                                  -EnableCodeCop `
                                  -EnablePerTenantExtensionCop `
                                  -EnableUICop `
+                                 -FailOn error `
+                                 -gitHubActions `
                                  -enableExternalRulesets `
                                  -rulesetFile $rulesetPath
 
