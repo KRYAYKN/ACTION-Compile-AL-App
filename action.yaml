@@ -24,7 +24,7 @@ runs:
         $RepoDir = Get-Location
         $password = ConvertTo-SecureString "${{ inputs.BC_PASSWORD }}" -AsPlainText -Force
         $credential = New-Object System.Management.Automation.PSCredential ("${{ inputs.BC_USERNAME }}", $password)
-
+        $rulesetPath = Join-Path $RepoDir ".vscode/CodeCop.Ruleset.json"
         Write-Host "Compiling App..."
         Compile-AppInBcContainer -appProjectFolder $RepoDir `
                                  -containerName "${{ inputs.CONTAINERNAME }}" `
@@ -35,7 +35,8 @@ runs:
                                  -EnableCodeCop `
                                  -EnablePerTenantExtensionCop `
                                  -EnableUICop `
-                                 -enableExternalRulesets
+                                 -enableExternalRulesets `
+                                 -rulesetFile $rulesetPath
 
         $App = Get-ChildItem -Path "$RepoDir/output" -Filter "*.app" | Select-Object -First 1
         New-Item -Path "${{ inputs.Build_StagingDirectory }}" -ItemType Directory -Force | Out-Null
