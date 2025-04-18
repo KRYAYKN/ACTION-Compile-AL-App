@@ -37,7 +37,7 @@ runs:
                                  -EnableUICop `
                                  -FailOn error `
                                  -gitHubActions `
-                                 -enableExternalRulesets `
+                                 -EnableExternalRulesets `
                                  -rulesetFile $rulesetPath
 
         $App = Get-ChildItem -Path "$RepoDir/output" -Filter "*.app" | Select-Object -First 1
