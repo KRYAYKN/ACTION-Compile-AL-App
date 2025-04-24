@@ -76,7 +76,7 @@ runs:
             -containerName $containerName `
             -credential $credential `
             -testSuite 'DEFAULT' `
-            -testCodeunitRange '66601..66700' `
+            -testCodeunitRange '66601..72000' `
             -ignoreGroups
         $first = $true
         $tests | ForEach-Object {
